@@ -1,30 +1,61 @@
 <script>
-</script>
+    import { currentUser, pb } from '$lib/auth_store';
+  
+    let username;
+    let password;
+    let errorMessage = '';
+  
+    async function login() {
+      try{
+        const user = await pb.collection('users').authWithPassword(username, password);
+        console.log(user)
+      } catch (err) {
+        errorMessage = 'Login Failed';
+      }
+    }
+  
+    async function signUp() {
+      try {
+        const data = {
+            "username": username,
+            "password": password,
+            "passwordConfirm": password,
+        };
+        const createdUser = await pb.collection('users').create(data);
+        await login();
+      } catch (err) {
+        errorMessage = 'Sign Up Failed';
+      }
+    }
+  
+    function signOut() {
+      pb.authStore.clear();
+    }
+  
+  </script>
+  
+  {#if $currentUser}
+    <p>
+      Signed in as {$currentUser.username} 
+      <button on:click={signOut}>Sign Out</button>
+    </p>
+  {:else}
+    <form on:submit|preventDefault>
+      <input
+        placeholder="Username"
+        type="text"
+        bind:value={username}
+      />
 
-<svelte:head>
-	<title>Login</title>
-</svelte:head>
+     <input 
+        placeholder="Password" 
+        type="password" 
+        bind:value={password} 
+      />
+      <p>{errorMessage}</p>
 
-<section>
-	<h1>welcome to your new app</h1>
-
-	<h2>
-		try editing <strong>src/routes/+page.svelte</strong>
-	</h2>
-
-</section>
-
-<style>
-	section {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		flex: 0.6;
-	}
-
-	h1 {
-		width: 100%;
-	}
-
-</style>
+        <button on:click={signUp}>Sign Up</button>
+      <button on:click={login}>Login</button>
+    </form>
+  {/if}
+  
